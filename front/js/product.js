@@ -1,15 +1,18 @@
 let params = new URL(document.location).searchParams;
 let id = params.get("id");
-let basket = JSON.parse(localStorage.getItem("product"));
 (async function () {
 	const product = await getProduct(id);
 	displayProduct(product);
-	addProduct();
+    addProductEvent(product);
 })();
 // Récupération de l'ID du produit avec l'API
 function getProduct(id){
-fetch(`http://localhost:3000/api/products/${id}`)
+    return fetch("http://localhost:3000/api/products/"+id)
     .then(response => response.json())
+    .then((responseData) => {
+      console.log(responseData);
+      return responseData;
+    })
     .catch ((error) => {
         let products = document.getElementById("item");
         products.innerHTML = ("oups, nous ne pouvons pas afficher les canapés.");
@@ -17,87 +20,85 @@ fetch(`http://localhost:3000/api/products/${id}`)
 }    
 // Affichage des caractéristiques du produit sur le DOM
 function displayProduct(product){
-    product.then((data) => {
-        document.title = data.name;
+        document.title = product.name;
         let pictureProduct = document.querySelector(".item__img");
         let img = document.createElement("img");
         pictureProduct.appendChild(img);
-        img.src = data.imageUrl;
+        img.src = product.imageUrl;
         let imgAlt = document.createElement("alt");
         img.appendChild(imgAlt);
-        imgAlt.innerHTML = data.altTxt;
+        imgAlt.innerHTML = product.altTxt;
         let titleProduct = document.getElementById("title");
-        titleProduct.innerHTML = data.name;
+        titleProduct.innerHTML = product.name;
         let priceProduct = document.getElementById("price");
-        priceProduct.innerHTML = data.price;
+        priceProduct.innerHTML = product.price;
         let descriptionProduct = document.getElementById("description");
-        descriptionProduct.innerHTML = data.description;
+        descriptionProduct.innerHTML = product.description;
         let colorProduct = document.getElementById("colors");
-        for (let i = 0; i < data.colors.length; i ++){
+        for (let i = 0; i < product.colors.length; i ++){
             let optionColor = document.createElement("option");
             colorProduct.appendChild(optionColor);
-            optionColor.innerHTML = data.colors[i];
+            optionColor.innerHTML = product.colors[i];
         }
-    });
-}    
-// Ecoute du bouton et condition d'ajout au localstorage
-function addProduct(){
-    let addBtn = document.querySelector("#addToCart");
-    addBtn.addEventListener("click", (event)=>{
-        let color = document.querySelector("#colors").value;
-        let quantity = Number (document.querySelector("#quantity").value);
-        let optionBasket ={
-            id: data._id,
-            nameOfProduct: document.title,
-            color,
-            quantity,
-            imageProduct: data.imageUrl,
-            altTxt: data.altTxt,
-            description: data.description, 
-        }
-    })
 }
-    //Condition a remplir pour ajout localStorage
-function addToBasket(){	
-        if (quantity > 0 && quantity <= 100 && color !== "") {
+// Ecoute du bouton pour ajout du produit au panier
+function addProductEvent(product) {
+    let addBtn = document.querySelector("#addToCart");
+    addBtn.addEventListener("click", () => {
+		addProduct(product);
+	});
+}
+// Condition d'ajout au localstorage et ajout du produit au panier
+function addProduct(product) {
+	let color = document.getElementById("colors").value;
+	let quantity = Number(document.getElementById("quantity").value);
+	let basket = JSON.parse(localStorage.getItem("product"));
+    if (basket == null) {
+		basket = [];
+	}
+	//Création de l'objet avant envoi au localStorage
+	let optionBasket = {
+		id: product._id,
+		name: product.name,
+		altTxt: product.altTxt,
+		imgSrc: product.imageUrl,
+		color,
+		quantity,
+	};
+
+	//Condition a remplir pour ajout localStorage
+	if (quantity > 0 && quantity <= 100 && color !== "") {
 		// Ajout produit si localStorage existant ou non
 		if (basket !== null) {
-			const productFound = basket.find(
-				(element) => element.id === optionBasket.id && element.color === optionBasket.color,
+            console.log(basket);
+			let productFound = basket.find(
+				(element) => element.id === optionBasket.id && element.color === optionBasket.color
 			);
+			let productFoundIndex = basket.findIndex(
+				(element) => element.id === optionBasket.id && element.color === optionBasket.color
+			  );
 			// si l'element est trouvé dans le localStorage ou  non
-			if (productFound != undefined) {
+			if (productFound) {
 				productFound.quantity += quantity;
+				console.log(productFound.quantity);				
+				basket[productFoundIndex].quantity = productFound.quantity;
+				//localStorage.setItem("basket", JSON.stringify(basket));
 			} else {
 				basket.push(optionBasket);
 			}
 		}
-		localStorage.setItem("product", JSON.stringify(basket));
-        popupValidate();
-    
-        // Ajout du produit au panier
-        if (basket) {
-            let foundProduct = basket.find((element) => element.id === optionBasket.id && element.color === optionBasket.color);
-            if (foundProduct){
-                foundProduct.quantity += quantity;
-                localStorage.setItem("product", JSON.stringify(basket));
-            } else{
-                basket.push(optionBasket);
-                localStorage.setItem("product", JSON.stringify(basket));
-            }
-            basket.push(optionBasket);
-
-        }
-        else {
-            alert("Veuillez choisir une quantité entre 1 et 100 et une couleur.");
-        }
-    }
+		localStorage.setItem("basket", JSON.stringify(basket));
+		popupValidate(product.name, quantity, color);
+	} else {
+		alert("Veuillez choisir une quantité entre 1 et 100 et une couleur.");
+	}
 }
+
     // Popup choix après ajout au panier
-function popupValidate(){
+function popupValidate(name, quantity, color){
 	if (
 		window.confirm(
-			`${quantity} ${document.title} de couleur ${color} ont été ajoutés à votre panier.\nCliquez sur OK pour continuer vos achats ou ANNULER pour aller au panier`,
+			`${quantity} ${name} de couleur ${color} ont été ajoutés à votre panier.\nCliquez sur OK pour continuer vos achats ou ANNULER pour aller au panier`,
 		)
 	) {
 		window.location.href = "index.html";
