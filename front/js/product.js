@@ -52,7 +52,7 @@ function addProductEvent(product) {
 function addProduct(product) {
 	let color = document.getElementById("colors").value;
 	let quantity = Number(document.getElementById("quantity").value);
-	let basket = JSON.parse(localStorage.getItem("product"));
+	let basket = JSON.parse(localStorage.getItem("basket"));
     if (basket == null) {
 		basket = [];
 	}

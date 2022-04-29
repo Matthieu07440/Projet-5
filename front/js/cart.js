@@ -1,5 +1,6 @@
 
-const cart = JSON.parse(localStorage.getItem("product"));
+const cart = JSON.parse(localStorage.getItem("basket"));
+console.log(cart);
 //  Appel des fonctions
 (async function () {
 	const product = await getProducts();
@@ -30,11 +31,11 @@ function displayCart() {
 			displayProduct.innerHTML += `
             <article class="cart__item" data-id="${element.id}" data-color="${element.color}">
                 <div class="cart__item__img">
-                <img src="${element.imageProduct}" alt="${element.altTxt}">
+                <img src="${element.imgSrc}" alt="${element.altTxt}">
                 </div>
                 <div class="cart__item__content">
                 <div class="cart__item__content__description">
-                    <h2>${element.nameOfProduct}</h2>
+                    <h2>${element.name}</h2>
                     <p>${element.color}</p>
                     <p id="priceProduct"></p>
                 </div>
@@ -102,7 +103,7 @@ function price(product) {
                     } else {
                         alert("Veuillez choisir une quantité entre 1 et 100");
                     }
-                    localStorage.setItem("product", JSON.stringify(cart));
+                    localStorage.setItem("basket", JSON.stringify(cart));
                     location.reload();
                 });
         
@@ -121,13 +122,13 @@ function price(product) {
                         const RemoveStorage = cart.filter(
                             (product) => product.id !== idRemove || product.color !== colorDelete,
                         );
-                        localStorage.setItem("product", JSON.stringify(RemoveStorage));
+                        localStorage.setItem("basket", JSON.stringify(RemoveStorage));
                         location.reload();
                     }
                 });
             });
             if (deleteBtn.length == 0) {
-                localStorage.removeItem("product");
+                localStorage.removeItem("basket");
                 location.reload();
             }
         }
